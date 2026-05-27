@@ -1,0 +1,38 @@
+# Python Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+bin/
+lib/
+include/
+
+# Python Cache and Compiled Files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ipynb_checkpoints/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDE and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Application Caches & Temporary Files
+flagged/
+*.log
+temp/
+tmp/
+*.zip
+*.tar.gz
+*.tgz
