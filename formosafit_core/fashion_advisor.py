@@ -27,7 +27,8 @@ RULES:
 4. Consider Taiwan's weather and the specific occasion
 5. Suggest color coordination with reasoning
 6. Be bilingual — use Traditional Chinese (繁體中文) for item names and English for explanations
-7. Format output in clean Markdown with clear sections"""
+7. Format output in clean Markdown with clear sections
+8. CRITICAL: Respect the user's gender_presentation from the VLM analysis. If masculine/male, recommend ONLY menswear. If feminine/female, recommend ONLY womenswear. NEVER cross-recommend."""
 
 RECOMMENDATION_PROMPT_TEMPLATE = """Based on the following analysis, recommend 3 complete outfit options.
 

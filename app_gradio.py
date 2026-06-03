@@ -51,7 +51,7 @@ STYLE_PREFS = [
 
 
 def analyze_and_recommend(
-    image, scene, city, style_prefs, budget,
+    image, scene, city, style_prefs, budget, gender_input,
     vlm_provider, vlm_model, vlm_api_key, vlm_base_url,
     llm_provider, llm_model, llm_api_key, llm_base_url,
 ):
@@ -87,12 +87,46 @@ def analyze_and_recommend(
 
     # Build search query from VLM features + scene
     body_type = features.get("body_type", "")
-    gender = features.get("gender_presentation", "")
-    search_query = f"{body_type} {scene} {' '.join(style_prefs) if style_prefs else ''}"
-    matched_products = product_db.search(search_query, top_k=15)
 
-    product_summary = f"Found {len(matched_products)} matching products"
-    yield f"🔎 **Step 3/4** — 找到 {len(matched_products)} 件匹配商品 ✅\n\n", features_json
+    # --- Gender Detection ---
+    # Priority: manual UI override > VLM detection
+    if gender_input == "👨 男性 Male":
+        detected_gender = "masculine"
+    elif gender_input == "👩 女性 Female":
+        detected_gender = "feminine"
+    else:
+        # Try to auto-detect from VLM output
+        gender_presentation = features.get("gender_presentation", "").lower().strip()
+        # Also scan raw analysis text as fallback for weak VLMs
+        raw_text = json.dumps(features, ensure_ascii=False).lower()
+        
+        masculine_signals = ["masculine", "male", "man", "boy", "gentleman", "男", "男性", "先生"]
+        feminine_signals = ["feminine", "female", "woman", "girl", "lady", "女", "女性", "小姐"]
+        
+        masc_score = sum(1 for s in masculine_signals if s in gender_presentation or s in raw_text)
+        fem_score = sum(1 for s in feminine_signals if s in gender_presentation or s in raw_text)
+        
+        if masc_score > fem_score:
+            detected_gender = "masculine"
+        elif fem_score > masc_score:
+            detected_gender = "feminine"
+        else:
+            detected_gender = None
+
+    logger.info(f"Gender detection: input='{gender_input}', detected='{detected_gender}'")
+
+    search_query = f"{body_type} {scene} {' '.join(style_prefs) if style_prefs else ''}"
+    matched_products = product_db.search(search_query, top_k=15, gender_filter=detected_gender)
+
+    # Hard post-filter: remove opposite-gender products as safety net
+    if detected_gender == "masculine":
+        matched_products = [p for p in matched_products if p.gender != "feminine"]
+    elif detected_gender == "feminine":
+        matched_products = [p for p in matched_products if p.gender != "masculine"]
+
+    gender_label = detected_gender or "unspecified"
+    product_summary = f"Found {len(matched_products)} matching products (gender: {gender_label})"
+    yield f"🔎 **Step 3/4** — 找到 {len(matched_products)} 件匹配商品 (性別篩選: {gender_label}) ✅\n\n", features_json
 
     # --- Step 4: LLM Recommendation ---
     yield "✨ **Step 4/4** — 生成穿搭推薦... Generating outfit recommendations...\n\n---\n\n", features_json
@@ -118,6 +152,34 @@ def analyze_and_recommend(
     ):
         accumulated += chunk
         yield accumulated, features_json
+
+    yield accumulated + "\n\n---\n\n🛒 **Step 5/5** — 正在為您搜尋購買連結... Fetching shopping links...", features_json
+    
+    # Get top 3 products for link search
+    top_products_for_links = matched_products[:3]
+    if top_products_for_links:
+        from formosafit_core.web_search import get_shopping_links
+        links_map = get_shopping_links(top_products_for_links, detected_gender=detected_gender)
+        
+        links_markdown = "\n\n### 🛒 購買連結 Shopping Links\n\n"
+        has_links = False
+        for p in top_products_for_links:
+            results = links_map.get(p.id, [])
+            if results:
+                has_links = True
+                links_markdown += f"- **{p.brand} {p.name}**\n"
+                for res in results:
+                    # Clean title slightly if too long
+                    title = res.get('title', '前往購買')
+                    if len(title) > 60: title = title[:57] + "..."
+                    links_markdown += f"  - [{title}]({res.get('href', '#')})\n"
+            else:
+                links_markdown += f"- **{p.brand} {p.name}**\n  - *(未找到直接連結 No direct link found)*\n"
+                
+        if has_links:
+            accumulated += links_markdown
+        else:
+            accumulated += "\n\n*(無法取得最新購買連結 Could not fetch live links at this time)*\n"
 
     yield accumulated + "\n\n---\n✅ 分析完成 Analysis Complete!", features_json
 
@@ -185,6 +247,12 @@ with gr.Blocks(css=CUSTOM_CSS, title="FormosaFit AI 智慧穿搭推薦", theme=g
                 choices=STYLE_PREFS,
                 label="🎨 風格偏好 Style Preferences",
                 value=["簡約 Minimal"],
+            )
+
+            gender_selector = gr.Radio(
+                choices=["🤖 自動偵測 Auto-detect", "👨 男性 Male", "👩 女性 Female"],
+                value="🤖 自動偵測 Auto-detect",
+                label="👤 性別 Gender",
             )
 
             budget_input = gr.Radio(
@@ -274,7 +342,7 @@ with gr.Blocks(css=CUSTOM_CSS, title="FormosaFit AI 智慧穿搭推薦", theme=g
     analyze_btn.click(
         fn=analyze_and_recommend,
         inputs=[
-            image_input, scene_input, city_input, style_input, budget_input,
+            image_input, scene_input, city_input, style_input, budget_input, gender_selector,
             vlm_provider, vlm_model, vlm_api_key, vlm_base_url,
             llm_provider, llm_model, llm_api_key, llm_base_url,
         ],
