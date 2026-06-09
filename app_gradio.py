@@ -294,7 +294,7 @@ with gr.Blocks(css=CUSTOM_CSS, title="FormosaFit AI 智慧穿搭推薦", theme=g
             vlm_model = gr.Textbox(
                 value="moondream",
                 label="VLM Model Name",
-                info="ollama: moondream, llava | openai: gpt-4o | gemini: gemini-pro-vision",
+                info="ollama: moondream, llava | openai: gpt-4o | gemini: gemini-1.5-flash",
             )
         with gr.Row():
             vlm_api_key = gr.Textbox(
@@ -306,7 +306,7 @@ with gr.Blocks(css=CUSTOM_CSS, title="FormosaFit AI 智慧穿搭推薦", theme=g
                 label="VLM Base URL (optional override)",
                 placeholder="http://localhost:11434",
             )
-
+ 
         gr.Markdown("### LLM Settings (Fashion Reasoning)")
         with gr.Row():
             llm_provider = gr.Dropdown(
@@ -317,7 +317,7 @@ with gr.Blocks(css=CUSTOM_CSS, title="FormosaFit AI 智慧穿搭推薦", theme=g
             llm_model = gr.Textbox(
                 value="llama3.2:3b",
                 label="LLM Model Name",
-                info="ollama: llama3.2:3b | openai: gpt-4o | gemini: gemini-pro",
+                info="ollama: llama3.2:3b | openai: gpt-4o | gemini: gemini-1.5-flash",
             )
         with gr.Row():
             llm_api_key = gr.Textbox(

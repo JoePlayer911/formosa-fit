@@ -92,7 +92,7 @@ class VLMAnalyzer:
         elif self.provider == "openai":
             self.base_url = "https://api.openai.com/v1"
         elif self.provider == "gemini":
-            self.base_url = "https://generativelanguage.googleapis.com"
+            self.base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
         else:
             self.base_url = "http://localhost:11434"
 

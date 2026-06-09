@@ -12,34 +12,23 @@ Upload a full-body photo → AI analyzes your body type & current outfit → Rec
 - 👔 **3 Outfit Recommendations** — Complete looks with color coordination and body-type reasoning
 - 🌐 **Bilingual** — Traditional Chinese + English output
 
-## Two Versions
+## Quick Start (Gradio Standalone)
 
-### Version 1: Gradio Standalone (`app_gradio.py`)
-Self-contained web app. No Kuwa dependency required.
+The application runs as a self-contained web app.
 
 ```bash
-# Quick start
-cd c:\kuwa\formosafit
+# Clone the repository and navigate to the folder
+cd formosafit
+
+# Install dependencies
 pip install -r requirements_gradio.txt
+
+# Start the application
 python app_gradio.py
 # Opens at http://localhost:7860
 ```
 
 Or use the Windows launcher: `run_gradio.bat`
-
-### Version 2: Kuwa OS Executor (`formosafit_executor.py`)
-Integrates into Kuwa Multi-Chat UI as a native executor.
-
-```bash
-# Start the executor (with Kuwa OS running)
-python formosafit_executor.py --access_code .tool/formosafit --product_db_path data/seed_data.json
-```
-
-Or use the Windows launcher: `kuwa_executor\run.bat`
-
-**Bot files** (import via Kuwa Store):
-- `formosafit.bot` — Custom executor version (full features)
-- `formosafit_vlm.bot` — Agent pipeline version (no-code, simpler)
 
 ## Model Requirements
 
@@ -76,14 +65,9 @@ formosafit/
 │   └── weather.py            # Taiwan weather (wttr.in)
 ├── data/
 │   └── seed_data.json        # Demo product catalog (35 items)
-├── app_gradio.py              # Version 1: Gradio standalone
-├── formosafit_executor.py     # Version 2: Kuwa executor
-├── formosafit.bot             # Kuwa bot config
-├── formosafit_vlm.bot         # Kuwa agent pipeline bot
+├── app_gradio.py              # Gradio standalone app
 ├── requirements_gradio.txt
-├── run_gradio.bat
-└── kuwa_executor/
-    └── run.bat
+└── run_gradio.bat
 ```
 
 ## Pipeline

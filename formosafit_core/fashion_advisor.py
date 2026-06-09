@@ -1,7 +1,7 @@
 """
 Fashion Advisor — LLM-powered outfit recommendation engine.
 Constructs prompts from VLM features + products + context, calls LLM for reasoning.
-Supports both local (Ollama/Kuwa) and cloud (OpenAI/Gemini) LLMs.
+Supports both local (Ollama) and cloud (OpenAI/Gemini) LLMs.
 """
 
 import json
@@ -95,6 +95,8 @@ class FashionAdvisor:
             self.base_url = "http://localhost:11434"
         elif self.provider == "openai":
             self.base_url = "https://api.openai.com/v1"
+        elif self.provider == "gemini":
+            self.base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
         else:
             self.base_url = "http://localhost:11434"
 
